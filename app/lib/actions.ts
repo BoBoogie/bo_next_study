@@ -28,10 +28,15 @@ export async function createInvoice(formData: FormData) {
     const amountInCents = amount * 100;
     const date = new Date().toISOString().split('T')[0];
     // 创建一个 SQL 查询，将新发票插入到数据库中并传入变量
-    await sql`
-    INSERT INTO invoices (customer_id, amount, status, date)
-    VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
-  `;
+    try {
+        await sql`
+        INSERT INTO invoices (customer_id, amount, status, date)
+        VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
+      `;
+
+    } catch (error) {
+        console.log(error)
+    }
     // 重新验证 Next.js 缓存, 触发新的服务器请求
     revalidatePath('/dashboard/invoices');
     redirect('/dashboard/invoices');
@@ -45,13 +50,15 @@ export async function updateInvoice(id: string, formData: FormData) {
     });
 
     const amountInCents = amount * 100;
-
-    await sql`
-    UPDATE invoices
-    SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
-    WHERE id = ${id}
-  `;
-
+    try {
+        await sql`
+        UPDATE invoices
+        SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
+        WHERE id = ${id}
+      `;
+    } catch (error) {
+        console.log(error)
+    }
     revalidatePath('/dashboard/invoices');
     redirect('/dashboard/invoices');
 }
